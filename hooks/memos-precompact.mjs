@@ -50,6 +50,7 @@ async function main() {
 
     // Extract user/assistant messages from last portion
     const messages = [];
+    const chatMessages = []; // structured {role, content} for preference extraction
     for (const line of lines.slice(-50)) {
       try {
         const entry = JSON.parse(line);
@@ -62,6 +63,7 @@ async function main() {
               : entry.message || "";
         if ((role === "user" || role === "assistant") && text.length > 10) {
           messages.push(`${role}: ${text.slice(0, 500)}`);
+          chatMessages.push({ role, content: text.slice(0, 2000) });
         }
       } catch {
         // skip malformed lines
@@ -177,6 +179,23 @@ Return ONLY a JSON array like: [{"content": "fact here", "tags": ["tag1"]}, ...]
               message_count: messages.length,
               ts: new Date().toISOString(),
             },
+          }),
+          signal: AbortSignal.timeout(15000),
+        });
+      } catch { /* non-fatal */ }
+    }
+
+    // Send structured messages for preference memory extraction
+    // Requires messages as [{role, content}] — memory_content (string) skips pref extraction
+    if (chatMessages.length >= 4) {
+      try {
+        await fetch(`${MEMOS_API}/product/add`, {
+          method: "POST",
+          headers: makeHeaders(),
+          body: JSON.stringify({
+            user_id: USER_ID,
+            mem_cube_id: CUBE_ID,
+            messages: chatMessages.slice(-20),
           }),
           signal: AbortSignal.timeout(15000),
         });
