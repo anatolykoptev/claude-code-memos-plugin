@@ -146,6 +146,7 @@ async function main() {
         skill_mem_top_k: 3,
         include_preference: true,
         dedup: "mmr",
+        internet_search: true,
       }),
       signal: AbortSignal.timeout(8000),
     });
