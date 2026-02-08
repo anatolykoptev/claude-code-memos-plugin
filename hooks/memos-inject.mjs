@@ -9,6 +9,9 @@
  * Stdin: { prompt, session_id, hook_event_name }
  * Stdout: { hookSpecificOutput: { hookEventName, additionalContext } }
  */
+import { loadConfig } from "./lib/config.mjs";
+
+loadConfig();
 
 const MEMOS_API = process.env.MEMOS_API_URL || "http://127.0.0.1:8000";
 const USER_ID = process.env.MEMOS_USER_ID || "default";

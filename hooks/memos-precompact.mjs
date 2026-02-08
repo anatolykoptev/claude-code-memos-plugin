@@ -9,6 +9,9 @@
  * Stdout: { continue: true }
  */
 import { readFileSync } from "node:fs";
+import { loadConfig } from "./lib/config.mjs";
+
+loadConfig();
 
 const MEMOS_API = process.env.MEMOS_API_URL || "http://127.0.0.1:8000";
 const USER_ID = process.env.MEMOS_USER_ID || "default";

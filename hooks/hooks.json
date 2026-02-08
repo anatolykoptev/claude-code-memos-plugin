@@ -1,6 +1,17 @@
 {
   "description": "MemOS memory hooks — inject relevant memories on prompt, save summaries before compaction",
   "hooks": {
+    "SessionStart": [
+      {
+        "hooks": [
+          {
+            "type": "command",
+            "command": "node ${CLAUDE_PLUGIN_ROOT}/hooks/memos-healthcheck.mjs",
+            "timeout": 5
+          }
+        ]
+      }
+    ],
     "UserPromptSubmit": [
       {
         "hooks": [
