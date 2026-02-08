@@ -96,7 +96,7 @@ Return ONLY a JSON array like: [{"content": "fact here", "tags": ["tag1"]}, ...]
       headers: makeHeaders(),
       body: JSON.stringify({
         user_id: USER_ID,
-        mem_cube_id: CUBE_ID,
+        readable_cube_ids: [CUBE_ID],
         query: summaryPrompt,
         top_k: 1,
         add_message_on_answer: false,
@@ -143,7 +143,7 @@ Return ONLY a JSON array like: [{"content": "fact here", "tags": ["tag1"]}, ...]
           headers: makeHeaders(),
           body: JSON.stringify({
             user_id: USER_ID,
-            mem_cube_id: CUBE_ID,
+            writable_cube_ids: [CUBE_ID],
             memory_content: entry.content,
             mode: "fast",
             tags: entry.tags || ["compaction_summary"],
@@ -169,7 +169,7 @@ Return ONLY a JSON array like: [{"content": "fact here", "tags": ["tag1"]}, ...]
           headers: makeHeaders(),
           body: JSON.stringify({
             user_id: USER_ID,
-            mem_cube_id: CUBE_ID,
+            writable_cube_ids: [CUBE_ID],
             memory_content: `Claude Code compaction flush: ${saved} entries saved from ${messages.length} messages`,
             mode: "fast",
             tags: ["compaction_summary"],
@@ -194,7 +194,7 @@ Return ONLY a JSON array like: [{"content": "fact here", "tags": ["tag1"]}, ...]
           headers: makeHeaders(),
           body: JSON.stringify({
             user_id: USER_ID,
-            mem_cube_id: CUBE_ID,
+            writable_cube_ids: [CUBE_ID],
             messages: chatMessages.slice(-20),
           }),
           signal: AbortSignal.timeout(15000),

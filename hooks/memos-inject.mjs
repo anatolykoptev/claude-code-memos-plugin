@@ -81,7 +81,7 @@ If none are relevant, return: []`;
       headers: makeHeaders(),
       body: JSON.stringify({
         user_id: USER_ID,
-        mem_cube_id: CUBE_ID,
+        readable_cube_ids: [CUBE_ID],
         query: prompt,
         top_k: 1,
         include_preference: false,
@@ -141,7 +141,7 @@ async function main() {
       body: JSON.stringify({
         query: prompt.slice(0, 500),
         user_id: USER_ID,
-        mem_cube_id: CUBE_ID,
+        readable_cube_ids: [CUBE_ID],
         top_k: FETCH_K,
         include_skill_memory: true,
         skill_mem_top_k: 3,
