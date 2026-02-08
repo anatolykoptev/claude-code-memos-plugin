@@ -115,7 +115,7 @@ Return ONLY a JSON array like: [{"content": "fact here", "tags": ["tag1"]}, ...]
     const responseText = summaryData?.data?.response || "";
 
     // Parse entries from LLM response
-    const match = responseText.match(/\[[\s\S]*?\]/);
+    const match = responseText.match(/\[[\s\S]*\]/);
     let entries = [];
     if (match) {
       try {

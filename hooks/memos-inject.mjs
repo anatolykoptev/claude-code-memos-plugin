@@ -18,7 +18,9 @@ const USER_ID = process.env.MEMOS_USER_ID || "default";
 const CUBE_ID = process.env.MEMOS_CUBE_ID || "memos";
 const SECRET = process.env.INTERNAL_SERVICE_SECRET || "";
 const FETCH_K = 12;      // over-fetch for reranker
-const INJECT_K = 6;      // max memories to inject after reranking
+const INJECT_K = 6;      // max text memories to inject after reranking
+const SKILL_K = 2;       // max skill memories to inject
+const PREF_K = 2;        // max preference memories to inject
 const MAX_CHARS = 500;
 const RERANK_SNIPPET = 300;
 
@@ -131,7 +133,7 @@ async function main() {
   }
 
   try {
-    // Step 1: Over-fetch from MemOS
+    // Step 1: Over-fetch from MemOS (with skill, preference, and MMR dedup)
     const res = await fetch(`${MEMOS_API}/product/search`, {
       method: "POST",
       headers: makeHeaders(),
@@ -140,6 +142,10 @@ async function main() {
         user_id: USER_ID,
         mem_cube_id: CUBE_ID,
         top_k: FETCH_K,
+        include_skill_memory: true,
+        skill_mem_top_k: 3,
+        include_preference: true,
+        dedup: "mmr",
       }),
       signal: AbortSignal.timeout(8000),
     });
@@ -147,25 +153,69 @@ async function main() {
     if (!res.ok) process.exit(0);
 
     const data = await res.json();
+
+    // Extract text memories
     const rawCubes = data?.data?.text_mem || data?.text_mem || [];
     let memories = rawCubes.flatMap((cube) => cube.memories || []);
 
-    if (!memories.length) process.exit(0);
+    // Extract skill memories
+    const rawSkill = data?.data?.skill_mem || [];
+    const skillMemories = rawSkill.flatMap((cube) => cube.memories || []).slice(0, SKILL_K);
 
-    // Step 2: Rerank via LLM
-    memories = await rerankMemories(prompt.slice(0, 300), memories);
+    // Extract preference memories
+    const rawPref = data?.data?.pref_mem || [];
+    const prefMemories = rawPref.flatMap((cube) => cube.memories || []).slice(0, PREF_K);
 
-    if (!memories.length) process.exit(0);
+    if (!memories.length && !skillMemories.length && !prefMemories.length) process.exit(0);
+
+    // Step 2: Rerank text memories via LLM
+    if (memories.length) {
+      memories = await rerankMemories(prompt.slice(0, 300), memories);
+    }
 
     // Step 3: Format and inject
-    const lines = memories.slice(0, INJECT_K).map((m) => {
-      const text = getMemoryText(m);
-      return "- " + (text.length > MAX_CHARS ? text.slice(0, MAX_CHARS) + "..." : text);
-    }).filter((l) => l.length > 4);
+    const sections = [];
 
-    if (!lines.length) process.exit(0);
+    // Text memories
+    if (memories.length) {
+      const textLines = memories.slice(0, INJECT_K).map((m) => {
+        const text = getMemoryText(m);
+        return "- " + (text.length > MAX_CHARS ? text.slice(0, MAX_CHARS) + "..." : text);
+      }).filter((l) => l.length > 4);
+      if (textLines.length) {
+        sections.push("Relevant memories from MemOS:\n" + textLines.join("\n"));
+      }
+    }
 
-    const context = `<user_memory_context>\nRelevant memories from MemOS:\n${lines.join("\n")}\n</user_memory_context>`;
+    // Skill memories
+    if (skillMemories.length) {
+      const skillLines = skillMemories.map((m) => {
+        const meta = m.metadata || m;
+        const name = meta.name || meta.key || "unnamed";
+        const desc = meta.description || getMemoryText(m) || "";
+        const procedure = meta.procedure || "";
+        let line = `- [Skill: ${name}] ${desc}`;
+        if (procedure) line += `\n  Procedure: ${procedure.length > 300 ? procedure.slice(0, 300) + "..." : procedure}`;
+        return line;
+      });
+      sections.push("Relevant skills from MemOS:\n" + skillLines.join("\n"));
+    }
+
+    // Preference memories
+    if (prefMemories.length) {
+      const prefLines = prefMemories.map((m) => {
+        const text = getMemoryText(m);
+        const truncated = text.length > 300 ? text.slice(0, 300) + "..." : text;
+        return `- [Preference] ${truncated}`;
+      }).filter((l) => l.length > 16);
+      if (prefLines.length) {
+        sections.push("User preferences from MemOS:\n" + prefLines.join("\n"));
+      }
+    }
+
+    if (!sections.length) process.exit(0);
+
+    const context = `<user_memory_context>\n${sections.join("\n\n")}\n</user_memory_context>`;
 
     console.log(JSON.stringify({
       hookSpecificOutput: {
