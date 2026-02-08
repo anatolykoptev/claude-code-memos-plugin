@@ -1,0 +1,22 @@
+{
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
+  "name": "memos-local",
+  "description": "Local marketplace for MemOS memory plugin",
+  "owner": {
+    "name": "Koptev Anatoly",
+    "email": "me@koptev.me"
+  },
+  "plugins": [
+    {
+      "name": "memos-memory",
+      "description": "MemOS memory integration for Claude Code — automatic context injection and conversation persistence",
+      "version": "1.0.0",
+      "author": {
+        "name": "Koptev Anatoly",
+        "email": "me@koptev.me"
+      },
+      "source": "./",
+      "category": "productivity"
+    }
+  ]
+}
