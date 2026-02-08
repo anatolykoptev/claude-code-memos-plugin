@@ -15,7 +15,10 @@
         "name": "Koptev Anatoly",
         "email": "me@koptev.me"
       },
-      "source": "./",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/anatolykoptev/claude-code-memos-plugin.git"
+      },
       "category": "productivity"
     }
   ]
