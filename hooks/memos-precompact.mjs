@@ -110,7 +110,7 @@ Return ONLY a JSON array like: [{"content": "fact here", "tags": ["tag1"]}, ...]
     const responseText = summaryData?.data?.response || "";
 
     // Parse entries from LLM response
-    const match = responseText.match(/\[[\s\S]*\]/);
+    const match = responseText.match(/\[[\s\S]*?\]/);
     let entries = [];
     if (match) {
       try {
@@ -140,6 +140,7 @@ Return ONLY a JSON array like: [{"content": "fact here", "tags": ["tag1"]}, ...]
             user_id: USER_ID,
             mem_cube_id: CUBE_ID,
             memory_content: entry.content,
+            mode: "fast",
             tags: entry.tags || ["compaction_summary"],
             info: {
               _type: "compaction_summary",
@@ -165,6 +166,7 @@ Return ONLY a JSON array like: [{"content": "fact here", "tags": ["tag1"]}, ...]
             user_id: USER_ID,
             mem_cube_id: CUBE_ID,
             memory_content: `Claude Code compaction flush: ${saved} entries saved from ${messages.length} messages`,
+            mode: "fast",
             tags: ["compaction_summary"],
             info: {
               _type: "compaction_summary",
