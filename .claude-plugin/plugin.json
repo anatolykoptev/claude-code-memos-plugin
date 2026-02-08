@@ -1,0 +1,11 @@
+{
+  "name": "memos-memory",
+  "description": "MemOS memory integration for Claude Code — automatic context injection and conversation persistence",
+  "version": "1.0.0",
+  "author": {
+    "name": "Koptev Anatoly",
+    "email": "krolik@example.com"
+  },
+  "license": "MIT",
+  "keywords": ["memory", "memos", "context", "persistence"]
+}
