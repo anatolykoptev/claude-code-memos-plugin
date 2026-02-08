@@ -17,8 +17,9 @@ const MEMOS_API = process.env.MEMOS_API_URL || "http://127.0.0.1:8000";
 const USER_ID = process.env.MEMOS_USER_ID || "default";
 const CUBE_ID = process.env.MEMOS_CUBE_ID || "memos";
 const SECRET = process.env.INTERNAL_SERVICE_SECRET || "";
-const FETCH_K = 12;      // over-fetch for reranker
-const INJECT_K = 6;      // max text memories to inject after reranking
+const RERANK_ENABLED = process.env.MEMOS_RERANKER === "true"; // disabled by default
+const FETCH_K = RERANK_ENABLED ? 12 : 8; // over-fetch only when reranking
+const INJECT_K = 6;      // max text memories to inject
 const SKILL_K = 2;       // max skill memories to inject
 const PREF_K = 2;        // max preference memories to inject
 const MAX_CHARS = 500;
@@ -169,8 +170,8 @@ async function main() {
 
     if (!memories.length && !skillMemories.length && !prefMemories.length) process.exit(0);
 
-    // Step 2: Rerank text memories via LLM
-    if (memories.length) {
+    // Step 2: Rerank text memories via LLM (disabled by default, set MEMOS_RERANKER=true to enable)
+    if (RERANK_ENABLED && memories.length) {
       memories = await rerankMemories(prompt.slice(0, 300), memories);
     }
 
