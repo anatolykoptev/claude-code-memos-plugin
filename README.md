@@ -1,6 +1,6 @@
 # claude-code-memos-plugin
 
-Claude Code plugin for MemOS memory integration — automatic context injection and conversation persistence.
+Claude Code plugin for MemDB memory integration — automatic context injection and conversation persistence.
 
 ## Quick Start
 
@@ -12,21 +12,21 @@ claude plugins install /path/to/claude-code-memos-plugin
 bash "$(claude plugins dir)/memos-memory/setup.sh"
 ```
 
-The setup script will prompt for your MemOS connection details, test connectivity, and save the config.
+The setup script will prompt for your MemDB connection details, test connectivity, and save the config.
 
 ## What it does
 
 **Three hooks** that make Claude Code sessions memory-aware:
 
-1. **`memos-healthcheck`** (SessionStart) — On session start, checks if MemOS is reachable and shows connection status. Warns if MemOS is down so you know memory features are disabled.
+1. **`memos-healthcheck`** (SessionStart) — On session start, checks if MemDB is reachable and shows connection status. Warns if MemDB is down so you know memory features are disabled.
 
-2. **`memos-inject`** (UserPromptSubmit) — Before each prompt, searches MemOS for relevant memories, reranks via LLM to filter noise, and injects the top results as context. Claude sees relevant past decisions, preferences, and project knowledge automatically.
+2. **`memos-inject`** (UserPromptSubmit) — Before each prompt, searches MemDB for relevant memories, reranks via LLM to filter noise, and injects the top results as context. Claude sees relevant past decisions, preferences, and project knowledge automatically.
 
-3. **`memos-precompact`** (PreCompact) — Before Claude Code compacts context, reads the conversation transcript, extracts key facts/decisions via LLM summarization, and saves them to MemOS. Important context survives across sessions.
+3. **`memos-precompact`** (PreCompact) — Before Claude Code compacts context, reads the conversation transcript, extracts key facts/decisions via LLM summarization, and saves them to MemDB. Important context survives across sessions.
 
 **One command:**
 
-- `/memory-search <query>` — Manually search MemOS memories with a specific query.
+- `/memory-search <query>` — Manually search MemDB memories with a specific query.
 
 **One skill:**
 
@@ -50,7 +50,7 @@ Set these before starting Claude Code:
 
 | Variable | Default | Description |
 |----------|---------|-------------|
-| `MEMOS_API_URL` | `http://127.0.0.1:8000` | MemOS API endpoint |
+| `MEMOS_API_URL` | `http://127.0.0.1:8000` | MemDB API endpoint |
 | `MEMOS_USER_ID` | `default` | User identifier |
 | `MEMOS_CUBE_ID` | `memos` | Memory cube identifier |
 | `INTERNAL_SERVICE_SECRET` | (empty) | Optional auth secret for X-Internal-Service header |
@@ -63,7 +63,7 @@ Environment variables take precedence over the config file.
 
 ## Prerequisites
 
-- [MemOS](https://github.com/MemTensor/MemOS) running and accessible (default: `http://127.0.0.1:8000`)
+- [MemDB](https://github.com/anatolykoptev/MemDB) running and accessible (default: `http://127.0.0.1:8000`)
 - Node.js 18+ (for `fetch` API)
 
 ## How the hooks work
@@ -74,14 +74,14 @@ Environment variables take precedence over the config file.
 Session start → Load config → GET /health → Inject status message
 ```
 
-- Tests MemOS connectivity with a 3-second timeout
-- On success: shows "MemOS memory connected (url, user, cube)"
+- Tests MemDB connectivity with a 3-second timeout
+- On success: shows "MemDB memory connected (url, user, cube)"
 - On failure: warns that memory features are disabled this session
 
 ### Context Injection (UserPromptSubmit)
 
 ```
-User prompt → Search MemOS (top 12) → LLM rerank → Inject top 6 as context
+User prompt → Search MemDB (top 12) → LLM rerank → Inject top 6 as context
 ```
 
 - Skips short/casual prompts (hi, ok, yes, etc.)
@@ -92,7 +92,7 @@ User prompt → Search MemOS (top 12) → LLM rerank → Inject top 6 as context
 ### Compaction Flush (PreCompact)
 
 ```
-Transcript → Extract last 50 messages → LLM summarize → Save entries to MemOS
+Transcript → Extract last 50 messages → LLM summarize → Save entries to MemDB
 ```
 
 - Reads conversation transcript (JSONL format)

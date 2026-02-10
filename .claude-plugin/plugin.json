@@ -1,11 +1,11 @@
 {
   "name": "memos-memory",
-  "description": "MemOS memory integration for Claude Code — automatic context injection and conversation persistence",
+  "description": "MemDB memory integration for Claude Code — automatic context injection and conversation persistence",
   "version": "1.0.0",
   "author": {
     "name": "Koptev Anatoly",
     "email": "me@koptev.me"
   },
   "license": "MIT",
-  "keywords": ["memory", "memos", "context", "persistence"]
+  "keywords": ["memory", "memdb", "context", "persistence"]
 }

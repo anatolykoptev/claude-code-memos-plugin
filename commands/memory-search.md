@@ -1,17 +1,17 @@
 ---
-description: "Search MemOS memory for relevant information"
+description: "Search MemDB memory for relevant information"
 argument-hint: "<query>"
 allowed-tools: ["Bash"]
 ---
 
 # Memory Search
 
-Search the MemOS memory system for relevant stored information.
+Search the MemDB memory system for relevant stored information.
 
 ## Instructions
 
 1. Take the user's query: `$ARGUMENTS`
-2. Run the following curl command to search MemOS:
+2. Run the following curl command to search MemDB:
 
 ```bash
 curl -s -X POST "${MEMOS_API_URL:-http://127.0.0.1:8000}/product/search" \
@@ -31,4 +31,4 @@ curl -s -X POST "${MEMOS_API_URL:-http://127.0.0.1:8000}/product/search" \
    - Any tags or metadata if present
    - The relevance score if available
 5. If no results found, tell the user.
-6. If the API is unreachable, inform the user that MemOS may not be running on the expected port.
+6. If the API is unreachable, inform the user that MemDB may not be running on the expected port.

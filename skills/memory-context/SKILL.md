@@ -1,6 +1,6 @@
 ---
 name: memory-context
-description: "Use when the user asks about their memories, past decisions, stored context, or when conversation context seems incomplete and MemOS memory could help fill gaps"
+description: "Use when the user asks about their memories, past decisions, stored context, or when conversation context seems incomplete and MemDB memory could help fill gaps"
 version: 1.0.0
 ---
 
@@ -8,19 +8,19 @@ version: 1.0.0
 
 ## Overview
 
-This skill helps you work with MemOS memory that is automatically injected into conversations via the `UserPromptSubmit` hook.
+This skill helps you work with MemDB memory that is automatically injected into conversations via the `UserPromptSubmit` hook.
 
 ## How Memory Injection Works
 
 Before each user prompt is processed, the `memos-inject` hook:
-1. Searches MemOS for memories relevant to the user's prompt
+1. Searches MemDB for memories relevant to the user's prompt
 2. Reranks results via LLM to filter noise (keeps only truly relevant memories)
 3. Injects relevant memories as `additionalContext` in a `<user_memory_context>` block
 
 You may see blocks like:
 ```
 <user_memory_context>
-Relevant memories from MemOS:
+Relevant memories from MemDB:
 - Memory content here...
 - Another memory...
 </user_memory_context>
@@ -43,14 +43,14 @@ If the user asks about something that should be in memory but isn't in the injec
 Before context compaction, the `memos-precompact` hook automatically:
 1. Reads the conversation transcript
 2. Extracts key facts, decisions, and context via LLM summarization
-3. Saves entries to MemOS tagged as `compaction_summary`
+3. Saves entries to MemDB tagged as `compaction_summary`
 
 This means important information from conversations is preserved across sessions without manual action.
 
 ## Environment Requirements
 
-The hooks require MemOS running and accessible. Configuration via environment variables:
-- `MEMOS_API_URL` — MemOS API endpoint (default: `http://127.0.0.1:8000`)
+The hooks require MemDB running and accessible. Configuration via environment variables:
+- `MEMOS_API_URL` — MemDB API endpoint (default: `http://127.0.0.1:8000`)
 - `MEMOS_USER_ID` — User identifier (default: `default`)
 - `MEMOS_CUBE_ID` — Memory cube identifier (default: `memos`)
 - `INTERNAL_SERVICE_SECRET` — Optional auth secret

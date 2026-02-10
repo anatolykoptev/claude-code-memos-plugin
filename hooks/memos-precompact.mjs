@@ -3,17 +3,23 @@
  * Claude Code Hook: PreCompact — Compaction Flush
  *
  * Before Claude Code compacts context, reads the transcript, summarizes it
- * via MemOS chat/complete, and saves the summary entries to MemOS.
+ * via MemDB chat/complete, and saves the summary entries to MemDB.
  *
  * Stdin: { session_id, transcript_path, hook_event_name }
  * Stdout: { continue: true }
  */
 import { readFileSync } from "node:fs";
+import { createHash } from "node:crypto";
 import { loadConfig } from "./lib/config.mjs";
 
 loadConfig();
 
-const MEMOS_API = process.env.MEMOS_API_URL || "http://127.0.0.1:8000";
+function computeContentHash(content, type = "memory") {
+  const normalized = content.toLowerCase().replace(/\s+/g, " ").trim();
+  return createHash("sha256").update(`${type}:${normalized}`).digest("hex").slice(0, 16);
+}
+
+const MEMOS_API = process.env.MEMOS_API_URL || "http://127.0.0.1:8080";
 const USER_ID = process.env.MEMOS_USER_ID || "default";
 const CUBE_ID = process.env.MEMOS_CUBE_ID || "memos";
 const SECRET = process.env.INTERNAL_SERVICE_SECRET || "";
@@ -77,7 +83,7 @@ async function main() {
 
     const transcript = messages.join("\n\n");
 
-    // Summarize via MemOS chat/complete
+    // Summarize via MemDB chat/complete
     const summaryPrompt = `Extract the key facts, decisions, and important context from this conversation. Return a JSON array of objects with "content" (the fact/decision) and "tags" (array of relevant tags).
 
 Focus on:
@@ -133,7 +139,7 @@ Return ONLY a JSON array like: [{"content": "fact here", "tags": ["tag1"]}, ...]
       return;
     }
 
-    // Save each entry to MemOS
+    // Save each entry to MemDB
     let saved = 0;
     for (const entry of entries.slice(0, 15)) {
       if (!entry.content || entry.content.length < 10) continue;
@@ -150,6 +156,7 @@ Return ONLY a JSON array like: [{"content": "fact here", "tags": ["tag1"]}, ...]
             info: {
               _type: "compaction_summary",
               source: "claude_code_precompact",
+              content_hash: computeContentHash(entry.content, "compaction_summary"),
               ts: new Date().toISOString(),
             },
           }),

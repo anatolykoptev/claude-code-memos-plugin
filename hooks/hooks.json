@@ -1,5 +1,5 @@
 {
-  "description": "MemOS memory hooks — inject relevant memories on prompt, save summaries before compaction",
+  "description": "MemDB memory hooks — inject relevant memories on prompt, save summaries before compaction",
   "hooks": {
     "SessionStart": [
       {

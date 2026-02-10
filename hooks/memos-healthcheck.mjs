@@ -2,7 +2,7 @@
 /**
  * Claude Code Hook: SessionStart — Health Check
  *
- * Checks if MemOS is reachable and injects a status message.
+ * Checks if MemDB is reachable and injects a status message.
  * No stdin for SessionStart hooks; outputs JSON to stdout.
  *
  * Stdout: { hookSpecificOutput: { hookEventName, additionalContext } }
@@ -24,14 +24,14 @@ try {
     console.log(JSON.stringify({
       hookSpecificOutput: {
         hookEventName: "SessionStart",
-        additionalContext: `MemOS memory connected (${API}, user: ${USER}, cube: ${CUBE})`,
+        additionalContext: `MemDB memory connected (${API}, user: ${USER}, cube: ${CUBE})`,
       },
     }));
   } else {
     console.log(JSON.stringify({
       hookSpecificOutput: {
         hookEventName: "SessionStart",
-        additionalContext: `WARNING: MemOS returned HTTP ${res.status} at ${API}. Memory injection and persistence are disabled this session. Run setup.sh in the plugin directory to configure.`,
+        additionalContext: `WARNING: MemDB returned HTTP ${res.status} at ${API}. Memory injection and persistence are disabled this session. Run setup.sh in the plugin directory to configure.`,
       },
     }));
   }
@@ -39,7 +39,7 @@ try {
   console.log(JSON.stringify({
     hookSpecificOutput: {
       hookEventName: "SessionStart",
-      additionalContext: `WARNING: MemOS is NOT reachable at ${API}. Memory injection and persistence are disabled this session. Run setup.sh in the plugin directory to configure.`,
+      additionalContext: `WARNING: MemDB is NOT reachable at ${API}. Memory injection and persistence are disabled this session. Run setup.sh in the plugin directory to configure.`,
     },
   }));
 }

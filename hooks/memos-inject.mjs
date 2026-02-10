@@ -2,9 +2,9 @@
 /**
  * Claude Code Hook: UserPromptSubmit — Context Injection
  *
- * Searches MemOS for relevant memories, reranks via LLM to filter noise,
+ * Searches MemDB for relevant memories, reranks via LLM to filter noise,
  * and injects relevant results as additionalContext.
- * Uses HTTP REST API (:8000) directly, not MCP.
+ * Uses HTTP REST API via Go gateway (:8080) for native search performance.
  *
  * Stdin: { prompt, session_id, hook_event_name }
  * Stdout: { hookSpecificOutput: { hookEventName, additionalContext } }
@@ -13,7 +13,7 @@ import { loadConfig } from "./lib/config.mjs";
 
 loadConfig();
 
-const MEMOS_API = process.env.MEMOS_API_URL || "http://127.0.0.1:8000";
+const MEMOS_API = process.env.MEMOS_API_URL || "http://127.0.0.1:8080";
 const USER_ID = process.env.MEMOS_USER_ID || "default";
 const CUBE_ID = process.env.MEMOS_CUBE_ID || "memos";
 const SECRET = process.env.INTERNAL_SERVICE_SECRET || "";
@@ -45,6 +45,29 @@ function readStdin() {
 
 function getMemoryText(m) {
   return m.memory || m.content || m.memory_content || "";
+}
+
+/**
+ * Format recency tag from metadata timestamps.
+ * Returns e.g. "[2h ago]", "[3d ago]", "[Jan 15]", or "" if unknown.
+ */
+function formatRecency(m) {
+  const meta = m.metadata || m;
+  const ts = meta.updated_at || meta.created_at;
+  if (!ts) return "";
+  try {
+    const date = new Date(ts);
+    if (isNaN(date.getTime())) return "";
+    const now = Date.now();
+    const diffMs = now - date.getTime();
+    const diffH = Math.floor(diffMs / 3600000);
+    if (diffH < 1) return "[<1h ago]";
+    if (diffH < 24) return `[${diffH}h ago]`;
+    const diffD = Math.floor(diffH / 24);
+    if (diffD < 14) return `[${diffD}d ago]`;
+    const month = date.toLocaleString("en", { month: "short" });
+    return `[${month} ${date.getDate()}]`;
+  } catch { return ""; }
 }
 
 /**
@@ -134,7 +157,7 @@ async function main() {
   }
 
   try {
-    // Step 1: Over-fetch from MemOS (with skill, preference, and MMR dedup)
+    // Step 1: Over-fetch from MemDB (with skill, preference, and MMR dedup)
     const res = await fetch(`${MEMOS_API}/product/search`, {
       method: "POST",
       headers: makeHeaders(),
@@ -178,14 +201,19 @@ async function main() {
     // Step 3: Format and inject
     const sections = [];
 
-    // Text memories
+    // Text memories — adaptive truncation based on count
     if (memories.length) {
-      const textLines = memories.slice(0, INJECT_K).map((m) => {
+      const items = memories.slice(0, INJECT_K);
+      const BUDGET = 3000; // total character budget for text memories
+      const perItem = Math.min(MAX_CHARS, Math.floor(BUDGET / Math.max(items.length, 1)));
+      const textLines = items.map((m) => {
         const text = getMemoryText(m);
-        return "- " + (text.length > MAX_CHARS ? text.slice(0, MAX_CHARS) + "..." : text);
+        const recency = formatRecency(m);
+        const truncated = text.length > perItem ? text.slice(0, perItem) + "..." : text;
+        return `- ${recency ? recency + " " : ""}${truncated}`;
       }).filter((l) => l.length > 4);
       if (textLines.length) {
-        sections.push("Relevant memories from MemOS:\n" + textLines.join("\n"));
+        sections.push("Relevant memories from MemDB:\n" + textLines.join("\n"));
       }
     }
 
@@ -200,7 +228,7 @@ async function main() {
         if (procedure) line += `\n  Procedure: ${procedure.length > 300 ? procedure.slice(0, 300) + "..." : procedure}`;
         return line;
       });
-      sections.push("Relevant skills from MemOS:\n" + skillLines.join("\n"));
+      sections.push("Relevant skills from MemDB:\n" + skillLines.join("\n"));
     }
 
     // Preference memories
@@ -211,7 +239,7 @@ async function main() {
         return `- [Preference] ${truncated}`;
       }).filter((l) => l.length > 16);
       if (prefLines.length) {
-        sections.push("User preferences from MemOS:\n" + prefLines.join("\n"));
+        sections.push("User preferences from MemDB:\n" + prefLines.join("\n"));
       }
     }
 
