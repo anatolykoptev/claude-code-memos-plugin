@@ -148,7 +148,12 @@ If none are relevant, return: []`;
 
 async function main() {
   const input = await readStdin();
-  const event = JSON.parse(input);
+  let event;
+  try {
+    event = JSON.parse(input);
+  } catch {
+    process.exit(0);
+  }
   const prompt = event.prompt || "";
 
   // Skip short or casual prompts
@@ -170,7 +175,7 @@ async function main() {
         skill_mem_top_k: 3,
         include_preference: true,
         dedup: "mmr",
-        internet_search: true,
+        internet_search: false,
       }),
       signal: AbortSignal.timeout(8000),
     });

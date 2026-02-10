@@ -41,7 +41,13 @@ function readStdin() {
 
 async function main() {
   const input = await readStdin();
-  const event = JSON.parse(input);
+  let event;
+  try {
+    event = JSON.parse(input);
+  } catch {
+    console.log(JSON.stringify({ continue: true }));
+    return;
+  }
   const transcriptPath = event.transcript_path;
 
   if (!transcriptPath) {
