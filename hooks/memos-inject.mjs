@@ -175,7 +175,7 @@ async function main() {
         skill_mem_top_k: 3,
         include_preference: true,
         dedup: "mmr",
-        relativity: 0.85,
+        relativity: 0.90,
         internet_search: false,
       }),
       signal: AbortSignal.timeout(8000),
