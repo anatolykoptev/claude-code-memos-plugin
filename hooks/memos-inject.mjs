@@ -13,7 +13,7 @@ import { loadConfig } from "./lib/config.mjs";
 
 loadConfig();
 
-const MEMOS_API = process.env.MEMOS_API_URL || "http://127.0.0.1:8080";
+const MEMOS_API = process.env.MEMDB_API_URL || process.env.MEMOS_API_URL || "http://127.0.0.1:8080";
 const USER_ID = process.env.MEMOS_USER_ID || "default";
 const CUBE_ID = process.env.MEMOS_CUBE_ID || "memos";
 const SECRET = process.env.INTERNAL_SERVICE_SECRET || "";
@@ -175,6 +175,7 @@ async function main() {
         skill_mem_top_k: 3,
         include_preference: true,
         dedup: "mmr",
+        relativity: 0.85,
         internet_search: false,
       }),
       signal: AbortSignal.timeout(8000),
